@@ -1,0 +1,187 @@
+# Dockerfile for Playwright E2E Testing on Azure with VNC support
+# Enables visual debugging of tests running in Azure Container Instances
+
+FROM mcr.microsoft.com/playwright:v1.50.0-jammy
+
+# Install VNC server and window manager for GUI access
+RUN apt-get update && apt-get install -y \
+    xvfb \
+    x11vnc \
+    fluxbox \
+    novnc \
+    websockify \
+    supervisor \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy E2E test files
+COPY e2e/ ./e2e/
+COPY package.json ./
+COPY package-lock.json ./
+
+# Install Node.js dependencies
+RUN npm ci
+
+# Create directories
+RUN mkdir -p /app/e2e/test-screenshots /app/e2e/events /var/log/supervisor
+
+# Create supervisor configuration
+COPY <<'SUPERVISOR_EOF' /etc/supervisor/conf.d/supervisord.conf
+[supervisord]
+nodaemon=true
+user=root
+
+[program:xvfb]
+command=Xvfb :99 -screen 0 1920x1080x24 -ac +extension GLX +render -noreset
+autorestart=true
+stdout_logfile=/var/log/supervisor/xvfb.log
+stderr_logfile=/var/log/supervisor/xvfb_err.log
+
+[program:fluxbox]
+command=fluxbox
+environment=DISPLAY=":99"
+autorestart=true
+stdout_logfile=/var/log/supervisor/fluxbox.log
+stderr_logfile=/var/log/supervisor/fluxbox_err.log
+
+[program:x11vnc]
+command=x11vnc -display :99 -forever -shared -rfbport 5900 -passwd %(ENV_VNC_PASSWORD)s -xkb -noxrecord -noxfixes -noxdamage -wait 10
+autorestart=true
+stdout_logfile=/var/log/supervisor/x11vnc.log
+stderr_logfile=/var/log/supervisor/x11vnc_err.log
+
+[program:novnc]
+command=websockify --web=/usr/share/novnc 6080 localhost:5900
+autorestart=true
+stdout_logfile=/var/log/supervisor/novnc.log
+stderr_logfile=/var/log/supervisor/novnc_err.log
+
+[program:playwright]
+command=/app/run-tests.sh
+environment=DISPLAY=":99"
+autorestart=false
+startsecs=0
+stdout_logfile=/var/log/supervisor/playwright.log
+stderr_logfile=/var/log/supervisor/playwright_err.log
+SUPERVISOR_EOF
+
+# Create test runner script
+COPY <<'RUNNER_EOF' /app/run-tests.sh
+#!/bin/bash
+set -e
+
+echo "========================================="
+echo "Playwright E2E Tests - Azure Edition"
+echo "========================================="
+echo "Target URL: ${E2E_URL}"
+echo "Headless: ${HEADLESS:-false}"
+echo "PWDEBUG: ${PWDEBUG:-0}"
+echo "========================================="
+
+# Wait for LibreChat to be ready
+echo "Waiting for LibreChat at ${E2E_URL}..."
+for i in {1..60}; do
+  if curl -f -s "${E2E_URL}/api/health" > /dev/null 2>&1; then
+    echo "LibreChat is ready!"
+    break
+  fi
+  echo "Attempt $i/60: LibreChat not ready, waiting..."
+  sleep 5
+done
+
+# Check if still not ready
+if ! curl -f -s "${E2E_URL}/api/health" > /dev/null 2>&1; then
+  echo "ERROR: LibreChat did not become ready within timeout!"
+  exit 1
+fi
+
+# Run tests based on mode
+if [ "${PWDEBUG}" = "1" ]; then
+  echo "Running in PWDEBUG mode (Inspector enabled)..."
+  cd /app/e2e
+  PWDEBUG=1 node ./single_window_runner.js 2>&1 | tee /app/e2e/test-run-azure.log
+else
+  echo "Running automated tests..."
+  cd /app/e2e
+  node ./single_window_runner.js 2>&1 | tee /app/e2e/test-run-azure.log
+fi
+
+echo "========================================="
+echo "Tests completed!"
+echo "Screenshots: /app/e2e/test-screenshots/"
+echo "Events: /app/e2e/e2e-events.log"
+echo "========================================="
+
+# Upload screenshots to Azure Blob Storage if configured
+if [ -n "${AZURE_STORAGE_CONNECTION_STRING}" ]; then
+  echo "Uploading screenshots to Azure Blob Storage..."
+  
+  # Install Azure CLI (lightweight method)
+  pip3 install azure-storage-blob
+  
+  # Upload script
+  python3 <<'UPLOAD_PYTHON'
+import os
+from azure.storage.blob import BlobServiceClient
+from pathlib import Path
+
+connection_string = os.environ.get('AZURE_STORAGE_CONNECTION_STRING')
+container_name = os.environ.get('AZURE_STORAGE_CONTAINER', 'screenshots')
+
+if connection_string:
+    blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+    container_client = blob_service_client.get_container_client(container_name)
+    
+    # Ensure container exists
+    try:
+        container_client.create_container()
+    except:
+        pass
+    
+    # Upload all screenshots
+    screenshots_dir = Path('/app/e2e/test-screenshots')
+    for screenshot in screenshots_dir.glob('*.png'):
+        blob_name = f"e2e-tests/{screenshot.name}"
+        with open(screenshot, 'rb') as data:
+            container_client.upload_blob(name=blob_name, data=data, overwrite=True)
+            print(f"Uploaded: {blob_name}")
+    
+    print("All screenshots uploaded!")
+UPLOAD_PYTHON
+fi
+
+# Keep container running if in watch mode
+if [ "${WATCH_MODE}" = "true" ]; then
+  echo "Watch mode enabled. Container will stay running..."
+  tail -f /dev/null
+fi
+RUNNER_EOF
+
+RUN chmod +x /app/run-tests.sh
+
+# Create VNC password file
+RUN mkdir -p /root/.vnc && \
+    x11vnc -storepasswd ${VNC_PASSWORD:-librechat} /root/.vnc/passwd || true
+
+# Expose ports
+EXPOSE 5900 6080
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD curl -f http://localhost:6080/ || exit 1
+
+# Environment variables
+ENV DISPLAY=:99
+ENV VNC_PASSWORD=librechat
+ENV E2E_URL=http://localhost:3080
+ENV HEADLESS=false
+ENV PWDEBUG=0
+
+# Labels
+LABEL maintainer="librechat-azure"
+LABEL description="Playwright E2E Testing with VNC - Azure Edition"
+LABEL version="1.0"
+
+ENTRYPOINT ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

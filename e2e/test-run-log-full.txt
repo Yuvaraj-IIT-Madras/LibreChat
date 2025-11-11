@@ -1,0 +1,64 @@
+
+======================================================================
+🚀 COMPREHENSIVE E2E TEST SUITE FOR LIBRECHAT
+======================================================================
+📋 Total Test Cases: 25
+⏱️  Estimated Duration: ~2-3 minutes
+⚠️  IMPORTANT: DO NOT CLOSE THE BROWSER WINDOW MANUALLY
+⚠️  Let all tests complete, then press Ctrl+C in terminal
+======================================================================
+
+🚀 Launching single Chrome browser window (headed mode)
+✅ Loading authenticated session from storageState.json
+
+🔹 [11:04:49 AM] Step 1/25: Navigate to landing page
+💬 PAGE> Failed to load resource: the server responded with a status of 401 (Unauthorized)
+💬 PAGE> 401 error, refreshing token
+💬 PAGE> Failed to load resource: the server responded with a status of 403 (Forbidden)
+💬 PAGE> refreshToken mutation error: K
+   ✅ [11:04:54 AM] Landing page loaded (1/25 - 4%)
+
+🔹 [11:04:54 AM] Step 2/25: Not authenticated, attempting login
+💬 PAGE> Failed to load resource: the server responded with a status of 401 (Unauthorized)
+💬 PAGE> 401 error, refreshing token
+💬 PAGE> Failed to load resource: the server responded with a status of 403 (Forbidden)
+💬 PAGE> refreshToken mutation error: K
+💬 PAGE> Parameters processed successfully 
+   ✅ [11:05:02 AM] Authentication complete (2/25 - 8%)
+
+🔹 [11:05:02 AM] Step 3/25: Create new conversation
+💬 PAGE> Parameters processed successfully 
+   ✅ [11:05:04 AM] New conversation created (3/25 - 12%)
+
+🔹 [11:05:04 AM] Step 4/25: Select Gemini Pro model from dropdown
+   Opened model selector
+   Opened Google models
+   ✅ Selected Gemini Pro model using: [role="option"]:has-text("gemini-2.5-pro")
+   ✅ [11:05:09 AM] Model selection complete (4/25 - 16%)
+
+🔹 [11:05:09 AM] Step 5/25: Send a test message
+   Found chat input: textarea[placeholder*="Message"]
+   ✅ Message sent
+   ⏳ Waiting for message response (8 seconds)...
+💬 PAGE> connection is opened
+   ✅ [11:05:18 AM] Message sent and response received (5/25 - 20%)
+
+🔹 [11:05:18 AM] Step 6/25: Test RIGHT PANEL - Agent Builder
+   Looking for right-panel controls...
+   📸 Screenshot saved: before-agent-builder.png
+   Opened Agent Builder panel
+   📸 Screenshot saved: agent-builder-panel.png
+   ✅ [11:05:21 AM] Agent Builder tested (6/25 - 24%)
+
+🔹 [11:05:21 AM] Step 7/25: Test RIGHT PANEL - Prompts
+   Opened Prompts panel
+   📸 Screenshot saved: prompts-panel.png
+   ✅ [11:05:23 AM] Prompts panel tested (7/25 - 28%)
+
+🔹 [11:05:23 AM] Step 8/25: Test RIGHT PANEL - Attach Files
+💬 PAGE> final {final: true, conversation: Object, title: New Chat, requestMessage: Object, responseMessage: Object}
+   Opened Attach Files
+   📸 Screenshot saved: attach-files-panel.png
+   ✅ [11:05:27 AM] Attach Files tested (8/25 - 32%)
+
+🔹 [11:05:27 AM] Step 9/25: Test RIGHT PANEL - Parameters

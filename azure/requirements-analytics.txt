@@ -1,0 +1,51 @@
+# Python Dependencies for Agentic Analytics Stack
+# Azure-optimized with all required packages
+
+# Core dependencies
+google-generativeai>=0.8.0
+python-dotenv>=1.0.0
+pyyaml>=6.0.1
+
+# Database drivers
+psycopg2-binary>=2.9.9  # PostgreSQL
+pymongo>=4.6.0          # MongoDB
+redis>=5.0.1            # Redis
+clickhouse-driver>=0.2.6  # ClickHouse
+mysql-connector-python>=8.2.0  # MySQL
+cx-Oracle>=8.3.0        # Oracle (optional)
+
+# Data processing
+pandas>=2.1.4
+numpy>=1.26.2
+
+# Docker and container management
+docker>=7.0.0
+
+# HTTP requests
+requests>=2.31.0
+urllib3>=2.1.0
+
+# File processing
+chardet>=5.2.0
+python-magic>=0.4.27
+
+# Testing
+pytest>=7.4.3
+pytest-asyncio>=0.21.1
+
+# Azure SDK (for Azure-specific features)
+azure-identity>=1.15.0
+azure-storage-blob>=12.19.0
+azure-eventhub>=5.11.6
+azure-monitor-opentelemetry>=1.2.0
+azure-keyvault-secrets>=4.7.0
+
+# Logging and monitoring
+python-json-logger>=2.0.7
+
+# Type hints and validation
+pydantic>=2.5.3
+typing-extensions>=4.9.0
+
+# Code analysis
+gitpython>=3.1.40

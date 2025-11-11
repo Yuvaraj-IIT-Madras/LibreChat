@@ -1,0 +1,154 @@
+# Dockerfile for Agentic Analytics Stack on Azure
+# Multi-stage build for optimized image size
+
+FROM python:3.11-slim as builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    postgresql-client \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install Python packages
+COPY requirements-analytics.txt /tmp/
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r /tmp/requirements-analytics.txt
+
+# Final stage
+FROM python:3.11-slim
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    postgresql-client \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Set working directory
+WORKDIR /app
+
+# Copy analytics scripts
+COPY tech_analyzer_v2.py .
+COPY dependency_mapper.py .
+COPY stack_generator.py .
+COPY config_engine.py .
+COPY database_adapter_registry.py .
+COPY rag_pipeline.py .
+COPY ingest.py .
+COPY query.py .
+COPY count_files.py .
+COPY test_database_adapters.py .
+COPY test_all_environments.py .
+
+# Create output directories
+RUN mkdir -p /app/output /app/logs
+
+# Create entrypoint script
+COPY <<'ENTRYPOINT_EOF' /app/entrypoint.sh
+#!/bin/bash
+set -e
+
+echo "========================================"
+echo "Agentic Analytics Stack - Azure Edition"
+echo "========================================"
+echo "Mode: ${ANALYSIS_MODE:-full}"
+echo "Workspace: ${WORKSPACE_PATH:-/workspace}"
+echo "Database: ${DB_HOST}:5432/${POSTGRES_DB}"
+echo "========================================"
+
+# Wait for database
+echo "Waiting for PostgreSQL..."
+until pg_isready -h "$DB_HOST" -U "$POSTGRES_USER" -d "$POSTGRES_DB"; do
+  echo "PostgreSQL is unavailable - sleeping"
+  sleep 2
+done
+echo "PostgreSQL is ready!"
+
+# Run based on mode
+case "${ANALYSIS_MODE}" in
+  tech_stack)
+    echo "Running Tech Stack Analysis..."
+    python /app/tech_analyzer_v2.py "${WORKSPACE_PATH:-/workspace}" 2>&1 | tee /app/logs/tech_analyzer.log
+    ;;
+  
+  dependencies)
+    echo "Running Dependency Mapping..."
+    python /app/dependency_mapper.py "${WORKSPACE_PATH:-/workspace}" 2>&1 | tee /app/logs/dependency_mapper.log
+    ;;
+  
+  stack_generation)
+    echo "Running Stack Generation..."
+    python /app/stack_generator.py "${WORKSPACE_PATH:-/workspace}" 2>&1 | tee /app/logs/stack_generator.log
+    ;;
+  
+  config)
+    echo "Running Config Engine..."
+    python /app/config_engine.py "${WORKSPACE_PATH:-/workspace}" 2>&1 | tee /app/logs/config_engine.log
+    ;;
+  
+  rag_pipeline)
+    echo "Running RAG Pipeline..."
+    python /app/rag_pipeline.py 2>&1 | tee /app/logs/rag_pipeline.log
+    ;;
+  
+  test)
+    echo "Running Database Adapter Tests..."
+    python /app/test_database_adapters.py 2>&1 | tee /app/logs/test_adapters.log
+    ;;
+  
+  full|*)
+    echo "Running Full Analytics Pipeline..."
+    
+    echo "[1/5] Tech Stack Analysis..."
+    python /app/tech_analyzer_v2.py "${WORKSPACE_PATH:-/workspace}" 2>&1 | tee /app/logs/tech_analyzer.log
+    
+    echo "[2/5] Dependency Mapping..."
+    python /app/dependency_mapper.py "${WORKSPACE_PATH:-/workspace}" 2>&1 | tee /app/logs/dependency_mapper.log
+    
+    echo "[3/5] Stack Generation..."
+    python /app/stack_generator.py "${WORKSPACE_PATH:-/workspace}" 2>&1 | tee /app/logs/stack_generator.log
+    
+    echo "[4/5] Config Engine..."
+    python /app/config_engine.py "${WORKSPACE_PATH:-/workspace}" 2>&1 | tee /app/logs/config_engine.log
+    
+    echo "[5/5] RAG Pipeline..."
+    python /app/rag_pipeline.py 2>&1 | tee /app/logs/rag_pipeline.log
+    
+    echo "Full pipeline completed!"
+    ;;
+esac
+
+echo "========================================"
+echo "Analysis complete! Logs saved to /app/logs/"
+echo "Output saved to /app/output/"
+echo "========================================"
+
+# Keep container running if in watch mode
+if [ "${WATCH_MODE}" = "true" ]; then
+  echo "Watch mode enabled. Container will stay running..."
+  tail -f /dev/null
+fi
+ENTRYPOINT_EOF
+
+RUN chmod +x /app/entrypoint.sh
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD pgrep -f python || exit 1
+
+# Labels for Azure
+LABEL maintainer="librechat-azure"
+LABEL description="Agentic Analytics Stack - Database-agnostic LLM-powered analysis"
+LABEL version="1.0"
+
+ENTRYPOINT ["/app/entrypoint.sh"]

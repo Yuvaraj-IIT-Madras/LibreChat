@@ -1,0 +1,76 @@
+
+======================================================================
+🚀 COMPREHENSIVE E2E TEST SUITE FOR LIBRECHAT
+======================================================================
+📋 Total Test Cases: 35 (100% Component Coverage)
+⏱️  Estimated Duration: ~3-4 minutes
+⚠️  IMPORTANT: DO NOT CLOSE THE BROWSER WINDOW MANUALLY
+⚠️  Let all tests complete, then press Ctrl+C in terminal
+======================================================================
+
+🚀 Launching single Chrome browser window (headed mode)
+✅ Loading authenticated session from storageState.json
+
+🔹 [11:50:03 AM] Step 1/25: Navigate to landing page
+💬 PAGE> Failed to load resource: the server responded with a status of 401 (Unauthorized)
+💬 PAGE> 401 error, refreshing token
+💬 PAGE> Failed to load resource: the server responded with a status of 403 (Forbidden)
+💬 PAGE> refreshToken mutation error: K
+   ✅ [11:50:07 AM] Landing page loaded (1/35 - 3%)
+
+🔹 [11:50:07 AM] Step 2/25: Not authenticated, attempting login
+💬 PAGE> Failed to load resource: the server responded with a status of 401 (Unauthorized)
+💬 PAGE> 401 error, refreshing token
+💬 PAGE> Failed to load resource: the server responded with a status of 403 (Forbidden)
+💬 PAGE> refreshToken mutation error: K
+💬 PAGE> Parameters processed successfully 
+   ✅ [11:50:15 AM] Authentication complete (2/35 - 6%)
+
+🔹 [11:50:15 AM] Step 3/25: Create new conversation
+   ✅ [11:50:18 AM] New conversation created (3/35 - 9%)
+
+🔹 [11:50:18 AM] Step 4/25: Select Gemini Pro model from dropdown
+💬 PAGE> Parameters processed successfully 
+   📋 Visible buttons: Close sidebar, Bookmarks, New chat, Clear Search, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, test, Open sidebar, New chat, Open sidebar, New chat, My Agents, Temporary Chat
+   ✅ Opened model selector using: button:has-text("My Agents")
+   ✅ Opened Google models
+   ✅ Selected Gemini 2.5 Pro using: [role="option"]:has-text("gemini-2.5-pro")
+   ✅ [11:50:22 AM] Model selection attempt complete (4/35 - 11%)
+
+🔹 [11:50:22 AM] Step 5/25: Send a test message
+   Found chat input: textarea[placeholder*="Message"]
+   ✅ Message sent
+   ⏳ Waiting for message response (8 seconds)...
+💬 PAGE> connection is opened
+   ✅ [11:50:32 AM] Message sent and response received (5/35 - 14%)
+
+🔹 [11:50:32 AM] Step 6/25: Test RIGHT PANEL - Agent Builder
+   🔍 Testing Agent Builder...
+   ✓ Agent Builder panel opened
+   📸 Screenshot saved: agent-builder-panel.png
+   ✓ Screenshot captured, closing panel...
+   ✅ [11:50:35 AM] Agent Builder tested (6/35 - 17%)
+
+🔹 [11:50:35 AM] Step 7/25: Test RIGHT PANEL - Prompts
+   🔍 Testing Prompts...
+   ✓ Prompts panel opened
+   📸 Screenshot saved: prompts-panel.png
+   ✓ Screenshot captured, closing panel...
+   ✅ [11:50:36 AM] Prompts panel tested (7/35 - 20%)
+
+🔹 [11:50:36 AM] Step 8/25: Test RIGHT PANEL - Attach Files
+   🔍 Testing Attach Files...
+   ✓ Attach Files opened
+   📸 Screenshot saved: attach-files-panel.png
+   ✓ Screenshot captured, closing panel...
+💬 PAGE> final {final: true, conversation: Object, title: New Chat, requestMessage: Object, responseMessage: Object}
+⏭️  skip click button[aria-label*="Attach"]
+   ✅ [11:51:08 AM] Attach Files tested (8/35 - 23%)
+
+🔹 [11:51:08 AM] Step 9/35: Test RIGHT PANEL - Parameters
+   🔍 Testing Parameters panel...
+   📋 Logging all visible right-panel buttons...
+   Available buttons: Close sidebar, Bookmarks, New chat, Clear Search, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, test, Open sidebar, New chat, Open sidebar, New chat, gemini-2.5-pro, Add Bookmarks, Export options, Fork, Thoughts, Run Code, Copy code, Run Code, Copy code, Fork, Scroll to bottom
+⏭️  skip click button:has-text("Parameters")
+⏭️  skip click button:has-text("Parameter")
+⏭️  skip click button[aria-label*="arameter"]

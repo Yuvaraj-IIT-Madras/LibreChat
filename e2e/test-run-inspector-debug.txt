@@ -1,0 +1,82 @@
+
+======================================================================
+🚀 COMPREHENSIVE E2E TEST SUITE FOR LIBRECHAT
+======================================================================
+📋 Total Test Cases: 33 (100% Component Coverage)
+⏱️  Estimated Duration: ~3-4 minutes
+⚠️  IMPORTANT: DO NOT CLOSE THE BROWSER WINDOW MANUALLY
+⚠️  Let all tests complete, then press Ctrl+C in terminal
+======================================================================
+
+{"ts":"2025-11-08T11:38:27.168Z","kind":"runner.start","payload":{"debug":true,"headless":false}}
+🔍 DEBUG MODE ENABLED - Playwright Inspector will open
+   You can step through each action visually
+   Press Enter in terminal to continue at breakpoints...
+
+🚀 Launching single Chrome browser window (headed mode)
+✅ Loading authenticated session from storageState.json
+
+🔹 [5:08:39 PM] Step 1/33: Navigate to landing page
+{"ts":"2025-11-08T11:41:40.565Z","kind":"page.loaded","payload":{"url":"http://localhost:3080/"}}
+💬 PAGE> Failed to load resource: the server responded with a status of 401 (Unauthorized)
+💬 PAGE> 401 error, refreshing token
+💬 PAGE> Failed to load resource: the server responded with a status of 403 (Forbidden)
+💬 PAGE> refreshToken mutation error: K
+   ✅ [5:11:42 PM] Landing page loaded (1/33 - 3%)
+{"ts":"2025-11-08T11:41:42.125Z","kind":"debug.pause","payload":{"reason":"breakpoint-after-load"}}
+
+⏸️  Playwright Inspector opened - use Inspector UI to step through tests...
+
+🔹 [5:12:01 PM] Step 2/33: Not authenticated, attempting login
+💬 PAGE> Failed to load resource: the server responded with a status of 401 (Unauthorized)
+💬 PAGE> 401 error, refreshing token
+💬 PAGE> Failed to load resource: the server responded with a status of 403 (Forbidden)
+💬 PAGE> refreshToken mutation error: K
+   ✅ [5:12:19 PM] Authentication complete (2/33 - 6%)
+
+🔹 [5:12:19 PM] Step 3/33: Create new conversation
+   ✅ [5:12:28 PM] New conversation created (3/33 - 9%)
+
+🔹 [5:12:28 PM] Step 4/33: Select Gemini Pro model from dropdown
+   📋 Visible buttons: Close sidebar, New chat, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options
+💬 PAGE> Parameters processed successfully 
+⏭️  skip click button:has-text("My Agents")
+⏭️  skip click button:has-text("gemini")
+⏭️  skip click button:has-text("Select")
+⏭️  skip click button[class*="model"]
+   ✅ Opened model selector using: button[aria-label*="model"]
+   ✅ Opened Google models
+   ✅ Selected Gemini 2.5 Pro using: [role="option"]:has-text("gemini-2.5-pro")
+   ✅ [5:12:56 PM] Model selection attempt complete (4/33 - 12%)
+
+🔹 [5:12:56 PM] Step 5/33: Send a test message
+   Found chat input: textarea[placeholder*="Message"]
+   ✅ Message sent
+   ⏳ Waiting for message response (8 seconds)...
+💬 PAGE> connection is opened
+   ✅ [5:13:07 PM] Message sent and response received (5/33 - 15%)
+
+🔹 [5:13:07 PM] Step 6/33: Test RIGHT PANEL - Agent Builder
+   🔍 Testing Agent Builder...
+   ✓ Agent Builder panel opened
+   📸 Screenshot saved: agent-builder-panel.png
+{"ts":"2025-11-08T11:43:13.475Z","kind":"screenshot.taken","payload":{"path":"/home/yuvaraj/Projects/LibreChat/e2e/test-screenshots/6-agent-builder-panel.png","name":"agent-builder-panel"}}
+   ✓ Screenshot captured, closing panel...
+   ✅ [5:13:15 PM] Agent Builder tested (6/33 - 18%)
+
+🔹 [5:13:15 PM] Step 7/33: Test RIGHT PANEL - Prompts
+   🔍 Testing Prompts...
+   ✓ Prompts panel opened
+💬 PAGE> final {final: true, conversation: Object, title: New Chat, requestMessage: Object, responseMessage: Object}
+   📸 Screenshot saved: prompts-panel.png
+{"ts":"2025-11-08T11:43:25.896Z","kind":"screenshot.taken","payload":{"path":"/home/yuvaraj/Projects/LibreChat/e2e/test-screenshots/7-prompts-panel.png","name":"prompts-panel"}}
+   ✓ Screenshot captured, closing panel...
+   ✅ [5:13:26 PM] Prompts panel tested (7/33 - 21%)
+
+🔹 [5:13:26 PM] Step 8/33: Test RIGHT PANEL - Attach Files
+   🔍 Testing Attach Files...
+   ✓ Attach Files opened
+   📸 Screenshot saved: attach-files-panel.png
+{"ts":"2025-11-08T11:43:32.783Z","kind":"screenshot.taken","payload":{"path":"/home/yuvaraj/Projects/LibreChat/e2e/test-screenshots/8-attach-files-panel.png","name":"attach-files-panel"}}
+   ✓ Screenshot captured, closing panel...
+💬 PAGE> Failed to load resource: the server responded with a status of 404 (Not Found)

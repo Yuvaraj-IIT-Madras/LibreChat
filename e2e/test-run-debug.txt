@@ -1,0 +1,85 @@
+
+======================================================================
+🚀 COMPREHENSIVE E2E TEST SUITE FOR LIBRECHAT
+======================================================================
+📋 Total Test Cases: 25
+⏱️  Estimated Duration: ~2-3 minutes
+⚠️  IMPORTANT: DO NOT CLOSE THE BROWSER WINDOW MANUALLY
+⚠️  Let all tests complete, then press Ctrl+C in terminal
+======================================================================
+
+🚀 Launching single Chrome browser window (headed mode)
+✅ Loading authenticated session from storageState.json
+
+🔹 [11:40:11 AM] Step 1/25: Navigate to landing page
+💬 PAGE> Failed to load resource: the server responded with a status of 401 (Unauthorized)
+💬 PAGE> 401 error, refreshing token
+💬 PAGE> Failed to load resource: the server responded with a status of 403 (Forbidden)
+💬 PAGE> refreshToken mutation error: K
+   ✅ [11:40:16 AM] Landing page loaded (1/25 - 4%)
+
+🔹 [11:40:16 AM] Step 2/25: Not authenticated, attempting login
+💬 PAGE> Failed to load resource: the server responded with a status of 401 (Unauthorized)
+💬 PAGE> 401 error, refreshing token
+💬 PAGE> Failed to load resource: the server responded with a status of 403 (Forbidden)
+💬 PAGE> refreshToken mutation error: K
+💬 PAGE> Parameters processed successfully 
+   ✅ [11:40:25 AM] Authentication complete (2/25 - 8%)
+
+🔹 [11:40:25 AM] Step 3/25: Create new conversation
+   ✅ [11:40:27 AM] New conversation created (3/25 - 12%)
+
+🔹 [11:40:27 AM] Step 4/25: Select Gemini Pro model from dropdown
+   📋 Visible buttons: Close sidebar, Bookmarks, New chat, Clear Search, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, test, Open sidebar, New chat, Open sidebar, New chat, My Agents, Temporary Chat, Attach File Options
+💬 PAGE> Parameters processed successfully 
+   ✅ Opened model selector using: button:has-text("My Agents")
+   ✅ Opened Google models
+   ✅ Selected Gemini 2.5 Pro using: [role="option"]:has-text("gemini-2.5-pro")
+   ✅ [11:40:34 AM] Model selection attempt complete (4/25 - 16%)
+
+🔹 [11:40:34 AM] Step 5/25: Send a test message
+   Found chat input: textarea[placeholder*="Message"]
+   ✅ Message sent
+   ⏳ Waiting for message response (8 seconds)...
+💬 PAGE> connection is opened
+   ✅ [11:40:43 AM] Message sent and response received (5/25 - 20%)
+
+🔹 [11:40:43 AM] Step 6/25: Test RIGHT PANEL - Agent Builder
+   🔍 Testing Agent Builder...
+   ✓ Agent Builder panel opened
+   📸 Screenshot saved: agent-builder-panel.png
+   ✓ Screenshot captured, closing panel...
+   ✅ [11:40:46 AM] Agent Builder tested (6/25 - 24%)
+
+🔹 [11:40:46 AM] Step 7/25: Test RIGHT PANEL - Prompts
+   🔍 Testing Prompts...
+   ✓ Prompts panel opened
+   📸 Screenshot saved: prompts-panel.png
+   ✓ Screenshot captured, closing panel...
+   ✅ [11:40:48 AM] Prompts panel tested (7/25 - 28%)
+
+🔹 [11:40:48 AM] Step 8/25: Test RIGHT PANEL - Attach Files
+   🔍 Testing Attach Files...
+   ✓ Attach Files opened
+   📸 Screenshot saved: attach-files-panel.png
+   ✓ Screenshot captured, closing panel...
+💬 PAGE> final {final: true, conversation: Object, title: New Chat, requestMessage: Object, responseMessage: Object}
+⏭️  skip click button[aria-label*="Attach"]
+   ✅ [11:41:20 AM] Attach Files tested (8/25 - 32%)
+
+🔹 [11:41:20 AM] Step 9/25: Test RIGHT PANEL - Parameters
+   ⚠️  Skipping Parameters - no dedicated button found in UI
+   ✅ [11:41:20 AM] Parameters panel skipped (9/25 - 36%)
+
+🔹 [11:41:20 AM] Step 10/25: Test RIGHT PANEL - Bookmarks
+   ⚠️  Skipping Bookmarks - no dedicated button found in UI
+   ✅ [11:41:20 AM] Bookmarks panel skipped (10/25 - 40%)
+
+🔹 [11:41:20 AM] Step 11/25: Test RIGHT PANEL - Memories
+   ⚠️  Skipping Memories - no dedicated button found in UI
+   ✅ [11:41:20 AM] Memories panel skipped (11/25 - 44%)
+
+🔹 [11:41:20 AM] Step 11/25: Test RIGHT PANEL - Memories
+   ⚠️  Skipping Memories - no dedicated button found in UI
+   ✅ [11:41:20 AM] Memories panel skipped (12/25 - 48%)
+   ✅ Right-panel tests complete, returning to main chat view...

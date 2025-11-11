@@ -1,0 +1,177 @@
+version: '3.8'
+
+services:
+  localstack:
+    image: localstack/localstack-pro:latest
+    container_name: localstack-librechat
+    ports:
+      - "4566:4566"
+    environment:
+      - LOCALSTACK_AUTH_TOKEN=ls-waZalifI-bAQI-7165-FANa-YowOhUCU2f53
+      - DEBUG=1
+      - PERSISTENCE=1
+      - AWS_DEFAULT_REGION=us-east-1
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./localstack-data:/var/lib/localstack"
+    networks:
+      - librechat-network
+
+  mongodb:
+    container_name: librechat-mongodb
+    image: mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./data-node:/data/db
+    command: mongod --noauth
+    networks:
+      - librechat-network
+
+  postgres:
+    container_name: librechat-postgres
+    image: pgvector/pgvector:pg15
+    restart: always
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=analytics
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    networks:
+      - librechat-network
+
+  redis:
+    container_name: librechat-redis
+    image: redis:latest
+    restart: always
+    ports:
+      - "6380:6379"
+    networks:
+      - librechat-network
+
+  meilisearch:
+    container_name: librechat-meilisearch
+    image: getmeili/meilisearch:v1.12.3
+    restart: always
+    environment:
+      - MEILI_HOST=http://meilisearch:7700
+      - MEILI_NO_ANALYTICS=true
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
+    volumes:
+      - ./meili_data_v1.12:/meili_data
+    networks:
+      - librechat-network
+
+  vectordb:
+    container_name: librechat-vectordb
+    image: ankane/pgvector:latest
+    environment:
+      - POSTGRES_DB=vectordb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    restart: always
+    volumes:
+      - ./pgvector:/var/lib/postgresql/data
+    networks:
+      - librechat-network
+
+  rag_api:
+    container_name: librechat-rag
+    ports:
+      - "8000:8000"
+    image: ghcr.io/danny-avila/librechat-rag-api-dev-lite:latest
+    restart: always
+    environment:
+      - DB_HOST=vectordb
+      - RAG_PORT=8000
+      - POSTGRES_DB=vectordb
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - JWT_SECRET=${JWT_SECRET:-default-secret}
+      - RAG_UPLOAD_DIR=/app/uploads
+      - EMBEDDINGS_PROVIDER=huggingface
+      - EMBEDDINGS_MODEL=sentence-transformers/all-MiniLM-L6-v2
+    volumes:
+      - ./uploads:/app/uploads
+    depends_on:
+      - vectordb
+    networks:
+      - librechat-network
+
+  api:
+    container_name: LibreChat-LocalStack
+    ports:
+      - "3080:3080"
+    depends_on:
+      - localstack
+      - mongodb
+      - postgres
+      - redis
+      - meilisearch
+      - rag_api
+    image: ghcr.io/danny-avila/librechat-dev:latest
+    restart: always
+    environment:
+      - HOST=0.0.0.0
+      - PORT=3080
+      - MONGO_URI=mongodb://mongodb:27017/LibreChat
+      - MEILI_HOST=http://meilisearch:7700
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
+      - RAG_PORT=8000
+      - RAG_API_URL=http://rag_api:8000
+      - REDIS_URI=redis://redis:6379
+      - POSTGRES_URL=postgresql://postgres:postgres@postgres:5432/analytics
+      - GOOGLE_KEY=AIzaSyAXczunlcdQsa2pHSzrpnjMd407exAD1N4
+      - AWS_ENDPOINT_URL=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+      - S3_BUCKET=librechat-uploads
+    volumes:
+      - ./.env:/app/.env
+      - ./images:/app/client/public/images
+      - ./uploads:/app/uploads
+    networks:
+      - librechat-network
+
+  # Playwright E2E Testing with LocalStack S3 for screenshots
+  playwright:
+    build:
+      context: .
+      dockerfile: azure/Dockerfile.playwright-e2e
+    container_name: librechat-playwright
+    environment:
+      # Test configuration
+      - BASE_URL=http://api:3080
+      - HEADLESS=true
+      
+      # AWS LocalStack for screenshot storage
+      - AWS_ENDPOINT_URL=http://localstack:4566
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+      - AWS_DEFAULT_REGION=us-east-1
+      - S3_BUCKET=librechat-screenshots
+      
+      # Test user credentials
+      - E2E_USER_EMAIL=${E2E_USER_EMAIL:-test@example.com}
+      - E2E_USER_PASSWORD=${E2E_USER_PASSWORD:-testpassword123}
+      
+      # Display for GUI testing
+      - DISPLAY=:99
+    volumes:
+      - ./e2e:/app/e2e
+      - ./e2e/test-screenshots:/app/e2e/test-screenshots
+    depends_on:
+      - api
+      - localstack
+    networks:
+      - librechat-network
+    command: tail -f /dev/null  # Keep container running
+
+networks:
+  librechat-network:
+    name: librechat-network

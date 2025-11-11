@@ -1,0 +1,44 @@
+
+======================================================================
+🚀 COMPREHENSIVE E2E TEST SUITE FOR LIBRECHAT
+======================================================================
+📋 Total Test Cases: 33 (100% Component Coverage)
+⏱️  Estimated Duration: ~3-4 minutes
+⚠️  IMPORTANT: DO NOT CLOSE THE BROWSER WINDOW MANUALLY
+⚠️  Let all tests complete, then press Ctrl+C in terminal
+======================================================================
+
+{"ts":"2025-11-08T13:03:37.058Z","kind":"runner.start","payload":{"debug":false,"headless":false}}
+🚀 Launching single Chrome browser window (headed mode)
+✅ Loading authenticated session from storageState.json
+
+🔹 [6:33:39 PM] Step 1/33: Navigate to landing page
+💬 PAGE> Failed to load resource: the server responded with a status of 401 (Unauthorized)
+💬 PAGE> 401 error, refreshing token
+💬 PAGE> Failed to load resource: the server responded with a status of 403 (Forbidden)
+💬 PAGE> refreshToken mutation error: K
+   ⚠️ Network not idle (auth errors), continuing anyway...
+{"ts":"2025-11-08T13:03:52.033Z","kind":"page.loaded","payload":{"url":"http://localhost:3080/login"}}
+   ✅ [6:33:53 PM] Landing page loaded (1/33 - 3%)
+
+🔹 [6:33:53 PM] Step 2/33: Not authenticated, attempting login
+💬 PAGE> Failed to load resource: the server responded with a status of 401 (Unauthorized)
+💬 PAGE> 401 error, refreshing token
+💬 PAGE> Failed to load resource: the server responded with a status of 403 (Forbidden)
+💬 PAGE> refreshToken mutation error: K
+{"ts":"2025-11-08T13:04:24.675Z","kind":"runner.error","payload":{"step":1,"totalSteps":33,"error":"page.waitForLoadState: Timeout 30000ms exceeded.\n=========================== logs ===========================\n  \"load\" event fired\n============================================================","stack":"page.waitForLoadState: Timeout 30000ms exceeded.\n=========================== logs ===========================\n  \"load\" event fired\n============================================================\n    at /home/yuvaraj/Projects/LibreChat/e2e/single_window_runner.js:163:18"}}
+
+❌ ========================================
+❌ Runner error at step 1/33:
+❌ page.waitForLoadState: Timeout 30000ms exceeded.
+=========================== logs ===========================
+  "load" event fired
+============================================================
+❌ Stack: page.waitForLoadState: Timeout 30000ms exceeded.
+=========================== logs ===========================
+  "load" event fired
+============================================================
+    at /home/yuvaraj/Projects/LibreChat/e2e/single_window_runner.js:163:18
+❌ ========================================
+
+⏸️  Browser will remain open for debugging. Press Ctrl+C to exit.

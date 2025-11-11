@@ -1,0 +1,192 @@
+
+======================================================================
+🚀 COMPREHENSIVE E2E TEST SUITE FOR LIBRECHAT
+======================================================================
+📋 Total Test Cases: 35 (100% Component Coverage)
+⏱️  Estimated Duration: ~3-4 minutes
+⚠️  IMPORTANT: DO NOT CLOSE THE BROWSER WINDOW MANUALLY
+⚠️  Let all tests complete, then press Ctrl+C in terminal
+======================================================================
+
+🚀 Launching single Chrome browser window (headed mode)
+✅ Loading authenticated session from storageState.json
+
+🔹 [12:49:49 PM] Step 1/25: Navigate to landing page
+💬 PAGE> Failed to load resource: net::ERR_NETWORK_CHANGED
+💬 PAGE> Failed to load resource: net::ERR_NETWORK_CHANGED
+💬 PAGE> Failed to load resource: net::ERR_NETWORK_CHANGED
+💬 PAGE> Failed to load resource: net::ERR_NETWORK_CHANGED
+💬 PAGE> Failed to load resource: net::ERR_NETWORK_CHANGED
+💬 PAGE> Failed to load resource: net::ERR_NETWORK_CHANGED
+💬 PAGE> Failed to load resource: net::ERR_NETWORK_CHANGED
+   ✅ [12:49:57 PM] Landing page loaded (1/35 - 3%)
+
+🔹 [12:49:57 PM] Step 2/25: Not authenticated, attempting login
+💬 PAGE> Failed to load resource: the server responded with a status of 401 (Unauthorized)
+💬 PAGE> 401 error, refreshing token
+💬 PAGE> Failed to load resource: the server responded with a status of 403 (Forbidden)
+💬 PAGE> refreshToken mutation error: K
+💬 PAGE> Parameters processed successfully 
+   ✅ [12:50:06 PM] Authentication complete (2/35 - 6%)
+
+🔹 [12:50:06 PM] Step 3/25: Create new conversation
+   ✅ [12:50:09 PM] New conversation created (3/35 - 9%)
+
+🔹 [12:50:09 PM] Step 4/25: Select Gemini Pro model from dropdown
+   📋 Visible buttons: Close sidebar, New chat, Clear Search, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options
+💬 PAGE> Parameters processed successfully 
+   ✅ Opened model selector using: button:has-text("My Agents")
+   ✅ Opened Google models
+   ✅ Selected Gemini 2.5 Pro using: [role="option"]:has-text("gemini-2.5-pro")
+   ✅ [12:50:15 PM] Model selection attempt complete (4/35 - 11%)
+
+🔹 [12:50:15 PM] Step 5/25: Send a test message
+   Found chat input: textarea[placeholder*="Message"]
+   ✅ Message sent
+   ⏳ Waiting for message response (8 seconds)...
+💬 PAGE> connection is opened
+   ✅ [12:50:25 PM] Message sent and response received (5/35 - 14%)
+
+🔹 [12:50:25 PM] Step 6/25: Test RIGHT PANEL - Agent Builder
+   🔍 Testing Agent Builder...
+   ✓ Agent Builder panel opened
+   📸 Screenshot saved: agent-builder-panel.png
+   ✓ Screenshot captured, closing panel...
+   ✅ [12:50:28 PM] Agent Builder tested (6/35 - 17%)
+
+🔹 [12:50:28 PM] Step 7/25: Test RIGHT PANEL - Prompts
+   🔍 Testing Prompts...
+   ✓ Prompts panel opened
+   📸 Screenshot saved: prompts-panel.png
+   ✓ Screenshot captured, closing panel...
+   ✅ [12:50:30 PM] Prompts panel tested (7/35 - 20%)
+
+🔹 [12:50:30 PM] Step 8/25: Test RIGHT PANEL - Attach Files
+   🔍 Testing Attach Files...
+   ✓ Attach Files opened
+   📸 Screenshot saved: attach-files-panel.png
+   ✓ Screenshot captured, closing panel...
+💬 PAGE> final {final: true, conversation: Object, title: New Chat, requestMessage: Object, responseMessage: Object}
+⏭️  skip click button[aria-label*="Attach"]
+   ✅ [12:51:02 PM] Attach Files tested (8/35 - 23%)
+
+🔹 [12:51:02 PM] Step 9/35: Verify right panel displays Parameters, Memories, Bookmarks
+   🔍 Checking right panel content...
+   ✓ Right panel contains: Parameters Memories Bookmarks
+   ✅ [12:51:02 PM] Right panel items verified (9/35 - 26%)
+
+🔹 [12:51:02 PM] Step 10/35: Test RIGHT PANEL - Hide Panel
+   🔍 Testing Hide Panel toggle...
+   ⚠️ Hide Panel button not found
+   ✅ [12:51:04 PM] Hide Panel tested (10/35 - 29%)
+   ✅ Right-panel tests complete, returning to main chat view...
+
+🔹 [12:51:06 PM] Step 13/35: Navigate to Settings
+   ✅ Settings page loaded
+   ✅ [12:51:09 PM] Settings page loaded (11/35 - 31%)
+
+🔹 [12:51:09 PM] Step 14/35: Toggle theme (Dark/Light)
+⏭️  skip click button:has-text("Dark")
+⏭️  skip click button:has-text("Light")
+   Switched to Light theme
+   ✅ [12:51:16 PM] Theme toggle complete (12/35 - 34%)
+
+🔹 [12:51:16 PM] Step 15/35: Check General settings tab
+⏭️  skip click button:has-text("General")
+   📸 Screenshot saved: settings-general.png
+   ✅ [12:51:21 PM] General settings tab checked (13/35 - 37%)
+
+🔹 [12:51:21 PM] Step 16/35: Check Data Controls tab
+⏭️  skip click button:has-text("Data Controls")
+   📸 Screenshot saved: settings-data-controls.png
+   ✅ [12:51:25 PM] Data Controls tab checked (14/35 - 40%)
+
+🔹 [12:51:25 PM] Step 17/35: Check Account tab
+⏭️  skip click button:has-text("Account")
+   📸 Screenshot saved: settings-account.png
+   ✅ [12:51:29 PM] Account tab checked (15/35 - 43%)
+
+🔹 [12:51:29 PM] Step 18/35: Return to chat
+   ✅ [12:51:31 PM] Returned to chat (16/35 - 46%)
+
+🔹 [12:51:31 PM] Step 19/35: Toggle navigation sidebar
+⏭️  skip click button[aria-label="Open sidebar"]
+💬 PAGE> Parameters processed successfully 
+⏭️  skip click button[aria-label="Toggle navigation"]
+   ✅ [12:51:37 PM] Navigation sidebar toggled (17/35 - 49%)
+
+🔹 [12:51:37 PM] Step 20/35: Verify conversation list and user menu
+   Found 19 conversation(s) in history
+   Opening user menu...
+   📸 Screenshot saved: user-menu.png
+   ✅ [12:51:39 PM] Conversation history and user menu checked (18/35 - 51%)
+
+🔹 [12:51:39 PM] Step 21/35: Test search messages
+   Search activated
+   📸 Screenshot saved: search-activated.png
+   ✅ [12:51:41 PM] Search messages tested (19/35 - 54%)
+
+🔹 [12:51:41 PM] Step 22/35: Test conversation options menu
+⏭️  skip click button[aria-label*="conversation"]
+⏭️  skip click button[aria-label*="options"]
+⏭️  skip click button[aria-label*="menu"]
+⏭️  skip click [data-testid*="convo-menu"]
+   ✅ [12:51:53 PM] Conversation options tested (20/35 - 57%)
+
+🔹 [12:51:53 PM] Step 23/35: Test model info/details panel
+⏭️  skip click button[aria-label*="info"]
+⏭️  skip click button[aria-label*="details"]
+⏭️  skip click [data-testid*="model-info"]
+⏭️  skip click button:has-text("Info")
+   ✅ [12:52:05 PM] Model info tested (21/35 - 60%)
+
+🔹 [12:52:05 PM] Step 24/35: Test copy/share conversation
+⏭️  skip click button[aria-label*="share"]
+⏭️  skip click button[aria-label*="copy"]
+⏭️  skip click button:has-text("Share")
+⏭️  skip click [data-testid*="share"]
+   ✅ [12:52:17 PM] Copy/share tested (22/35 - 63%)
+
+🔹 [12:52:17 PM] Step 25/35: Test new chat button
+⏭️  skip click button:has-text("New chat")
+   New chat button clicked
+   📸 Screenshot saved: new-chat-created.png
+   ✅ [12:52:23 PM] New chat button tested (23/35 - 66%)
+
+🔹 [12:52:23 PM] Step 26/35: Test voice input (if available)
+⏭️  skip click button[aria-label*="voice"]
+⏭️  skip click button[aria-label*="audio"]
+   Voice input activated
+   ✅ [12:52:30 PM] Voice input tested (24/35 - 69%)
+
+🔹 [12:52:30 PM] Step 27/35: Test stop generation button
+💬 PAGE> connection is opened
+   Stop generation clicked
+   ✅ [12:52:33 PM] Stop generation tested (25/35 - 71%)
+
+🔹 [12:52:33 PM] Step 28/35: Test regenerate response
+⏭️  skip click button[aria-label*="Regenerate"]
+⏭️  skip click button:has-text("Regenerate")
+⏭️  skip click button[aria-label*="Retry"]
+   ✅ [12:52:42 PM] Regenerate tested (26/35 - 74%)
+
+🔹 [12:52:42 PM] Step 29/35: Test message actions (copy, edit, delete)
+⏭️  skip click button[aria-label*="Copy"]
+   ✅ [12:52:45 PM] Message actions tested (27/35 - 77%)
+
+🔹 [12:52:45 PM] Step 30/35: Test conversation rename
+⏭️  skip click button[aria-label*="Rename"]
+⏭️  skip click button[aria-label*="Edit title"]
+⏭️  skip click [data-testid*="rename"]
+   ✅ [12:52:54 PM] Conversation rename tested (28/35 - 80%)
+
+🔹 [12:52:54 PM] Step 31/35: Test conversation delete
+   ✅ [12:52:55 PM] Conversation delete tested (29/35 - 83%)
+
+🔹 [12:52:55 PM] Step 32/35: Test keyboard shortcuts
+   Testing Cmd/Ctrl+K for search...
+   ✅ [12:52:56 PM] Keyboard shortcuts tested (30/35 - 86%)
+
+🔹 [12:52:56 PM] Step 33/35: Test responsive sidebar collapse
+   Sidebar toggled
+   📸 Screenshot saved: sidebar-toggled.png

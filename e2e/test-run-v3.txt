@@ -1,0 +1,80 @@
+
+======================================================================
+🚀 COMPREHENSIVE E2E TEST SUITE FOR LIBRECHAT
+======================================================================
+📋 Total Test Cases: 35 (100% Component Coverage)
+⏱️  Estimated Duration: ~3-4 minutes
+⚠️  IMPORTANT: DO NOT CLOSE THE BROWSER WINDOW MANUALLY
+⚠️  Let all tests complete, then press Ctrl+C in terminal
+======================================================================
+
+🚀 Launching single Chrome browser window (headed mode)
+✅ Loading authenticated session from storageState.json
+
+🔹 [12:05:34 PM] Step 1/25: Navigate to landing page
+💬 PAGE> Failed to load resource: the server responded with a status of 401 (Unauthorized)
+💬 PAGE> 401 error, refreshing token
+💬 PAGE> Failed to load resource: the server responded with a status of 403 (Forbidden)
+💬 PAGE> refreshToken mutation error: K
+   ✅ [12:05:40 PM] Landing page loaded (1/35 - 3%)
+
+🔹 [12:05:40 PM] Step 2/25: Not authenticated, attempting login
+💬 PAGE> Failed to load resource: the server responded with a status of 401 (Unauthorized)
+💬 PAGE> 401 error, refreshing token
+💬 PAGE> Failed to load resource: the server responded with a status of 403 (Forbidden)
+💬 PAGE> refreshToken mutation error: K
+💬 PAGE> Parameters processed successfully 
+   ✅ [12:05:51 PM] Authentication complete (2/35 - 6%)
+
+🔹 [12:05:51 PM] Step 3/25: Create new conversation
+   ✅ [12:05:55 PM] New conversation created (3/35 - 9%)
+
+🔹 [12:05:55 PM] Step 4/25: Select Gemini Pro model from dropdown
+💬 PAGE> Parameters processed successfully 
+   📋 Visible buttons: Close sidebar, Bookmarks, New chat, Clear Search, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, Conversation Menu Options, test, Open sidebar, New chat
+   ✅ Opened model selector using: button:has-text("My Agents")
+   ✅ Opened Google models
+   ✅ Selected Gemini 2.5 Pro using: [role="option"]:has-text("gemini-2.5-pro")
+   ✅ [12:06:01 PM] Model selection attempt complete (4/35 - 11%)
+
+🔹 [12:06:01 PM] Step 5/25: Send a test message
+   Found chat input: textarea[placeholder*="Message"]
+   ✅ Message sent
+   ⏳ Waiting for message response (8 seconds)...
+💬 PAGE> connection is opened
+   ✅ [12:06:10 PM] Message sent and response received (5/35 - 14%)
+
+🔹 [12:06:10 PM] Step 6/25: Test RIGHT PANEL - Agent Builder
+   🔍 Testing Agent Builder...
+   ✓ Agent Builder panel opened
+   📸 Screenshot saved: agent-builder-panel.png
+   ✓ Screenshot captured, closing panel...
+   ✅ [12:06:13 PM] Agent Builder tested (6/35 - 17%)
+
+🔹 [12:06:13 PM] Step 7/25: Test RIGHT PANEL - Prompts
+   🔍 Testing Prompts...
+   ✓ Prompts panel opened
+   📸 Screenshot saved: prompts-panel.png
+   ✓ Screenshot captured, closing panel...
+   ✅ [12:06:14 PM] Prompts panel tested (7/35 - 20%)
+
+🔹 [12:06:14 PM] Step 8/25: Test RIGHT PANEL - Attach Files
+   🔍 Testing Attach Files...
+   ✓ Attach Files opened
+   📸 Screenshot saved: attach-files-panel.png
+   ✓ Screenshot captured, closing panel...
+💬 PAGE> final {final: true, conversation: Object, title: New Chat, requestMessage: Object, responseMessage: Object}
+⏭️  skip click button[aria-label*="Attach"]
+   ✅ [12:06:46 PM] Attach Files tested (8/35 - 23%)
+
+🔹 [12:06:46 PM] Step 9/35: Test RIGHT PANEL - Parameters
+   🔍 Testing Parameters panel...
+⏭️  skip click :text("Parameters")
+⏭️  skip click button >> text="Parameters"
+⏭️  skip click [title*="Parameters"]
+   ⏭️ Parameters button not found or not clickable
+   ✅ [12:07:50 PM] Parameters tested (9/35 - 26%)
+
+🔹 [12:07:50 PM] Step 10/35: Test RIGHT PANEL - Memories
+   🔍 Testing Memories panel...
+⏭️  skip click :text("Memories")

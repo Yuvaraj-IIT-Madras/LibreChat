@@ -1,0 +1,274 @@
+# Dockerfile for MCP Forwarder with Azure Event Hub support
+# Streams Playwright E2E events to Azure Event Hub
+
+FROM node:20-alpine
+
+# Install dependencies
+RUN apk add --no-cache \
+    bash \
+    curl \
+    jq
+
+WORKDIR /app
+
+# Create package.json for MCP forwarder with Azure Event Hub
+COPY <<'PACKAGE_EOF' /app/package.json
+{
+  "name": "mcp-forwarder-azure",
+  "version": "1.0.0",
+  "description": "MCP Event Forwarder with Azure Event Hub support",
+  "main": "mcp-forwarder-azure.js",
+  "dependencies": {
+    "@azure/event-hubs": "^5.12.0",
+    "node-fetch": "^2.7.0",
+    "dotenv": "^16.4.5"
+  }
+}
+PACKAGE_EOF
+
+# Install Node.js dependencies
+RUN npm install
+
+# Create Azure-enhanced MCP forwarder
+COPY <<'FORWARDER_EOF' /app/mcp-forwarder-azure.js
+const fs = require('fs');
+const path = require('path');
+const fetch = require('node-fetch');
+const { EventHubProducerClient } = require('@azure/event-hubs');
+
+// Configuration
+const EVENT_LOG_FILE = process.env.EVENT_LOG_FILE || '/app/events/e2e-events.log';
+const MCP_INGEST_URL = process.env.MCP_INGEST_URL;
+const MCP_API_KEY = process.env.MCP_API_KEY;
+const AZURE_EVENT_HUB_CONNECTION = process.env.AZURE_EVENT_HUB_CONNECTION;
+const EVENT_HUB_NAME = process.env.EVENT_HUB_NAME || 'e2e-test-events';
+const BATCH_SIZE = parseInt(process.env.BATCH_SIZE || '10', 10);
+const FLUSH_INTERVAL_MS = parseInt(process.env.FLUSH_INTERVAL_MS || '5000', 10);
+
+let eventHubProducer = null;
+let eventBatch = [];
+let lastPosition = 0;
+
+// Initialize Azure Event Hub client
+async function initializeEventHub() {
+  if (!AZURE_EVENT_HUB_CONNECTION) {
+    console.log('Azure Event Hub not configured, using HTTP endpoint only');
+    return;
+  }
+
+  try {
+    eventHubProducer = new EventHubProducerClient(
+      AZURE_EVENT_HUB_CONNECTION,
+      EVENT_HUB_NAME
+    );
+    console.log(`✅ Connected to Azure Event Hub: ${EVENT_HUB_NAME}`);
+  } catch (error) {
+    console.error('❌ Failed to connect to Azure Event Hub:', error.message);
+  }
+}
+
+// Send event to HTTP endpoint
+async function sendToHTTP(event) {
+  if (!MCP_INGEST_URL) return;
+
+  const headers = {
+    'Content-Type': 'application/json',
+  };
+
+  if (MCP_API_KEY) {
+    headers['Authorization'] = `Bearer ${MCP_API_KEY}`;
+  }
+
+  try {
+    const response = await fetch(MCP_INGEST_URL, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(event),
+    });
+
+    if (!response.ok) {
+      console.error(`HTTP forward failed: ${response.status} ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error('HTTP forward error:', error.message);
+  }
+}
+
+// Send event to Azure Event Hub
+async function sendToEventHub(event) {
+  if (!eventHubProducer) return;
+
+  try {
+    const batch = await eventHubProducer.createBatch();
+    const eventData = {
+      body: event,
+      properties: {
+        source: 'playwright-e2e',
+        environment: process.env.ENVIRONMENT || 'azure',
+        timestamp: event.ts,
+      },
+    };
+
+    const added = batch.tryAdd(eventData);
+    if (added) {
+      await eventHubProducer.sendBatch(batch);
+    }
+  } catch (error) {
+    console.error('Event Hub send error:', error.message);
+  }
+}
+
+// Process event
+async function processEvent(event) {
+  // Send to both HTTP and Event Hub
+  await Promise.all([
+    sendToHTTP(event),
+    sendToEventHub(event),
+  ]);
+}
+
+// Watch event log file for changes
+function watchEventLog() {
+  console.log(`👀 Watching event log: ${EVENT_LOG_FILE}`);
+
+  // Initial read
+  if (fs.existsSync(EVENT_LOG_FILE)) {
+    const content = fs.readFileSync(EVENT_LOG_FILE, 'utf-8');
+    lastPosition = content.length;
+  }
+
+  // Watch for changes
+  fs.watchFile(EVENT_LOG_FILE, { interval: 500 }, async (curr, prev) => {
+    if (curr.size > lastPosition) {
+      const stream = fs.createReadStream(EVENT_LOG_FILE, {
+        start: lastPosition,
+        encoding: 'utf-8',
+      });
+
+      let buffer = '';
+      stream.on('data', (chunk) => {
+        buffer += chunk;
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.trim()) {
+            try {
+              const event = JSON.parse(line);
+              eventBatch.push(event);
+
+              // Process batch if size reached
+              if (eventBatch.length >= BATCH_SIZE) {
+                processBatch();
+              }
+            } catch (error) {
+              console.error('Invalid JSON:', line);
+            }
+          }
+        }
+      });
+
+      stream.on('end', () => {
+        lastPosition = curr.size;
+      });
+    }
+  });
+
+  // Periodic flush
+  setInterval(() => {
+    if (eventBatch.length > 0) {
+      processBatch();
+    }
+  }, FLUSH_INTERVAL_MS);
+}
+
+// Process batch of events
+async function processBatch() {
+  const batch = [...eventBatch];
+  eventBatch = [];
+
+  console.log(`📤 Processing batch of ${batch.length} events...`);
+
+  for (const event of batch) {
+    await processEvent(event);
+  }
+
+  console.log(`✅ Batch processed`);
+}
+
+// Graceful shutdown
+async function shutdown() {
+  console.log('🛑 Shutting down...');
+
+  // Process remaining events
+  if (eventBatch.length > 0) {
+    await processBatch();
+  }
+
+  // Close Event Hub connection
+  if (eventHubProducer) {
+    await eventHubProducer.close();
+  }
+
+  process.exit(0);
+}
+
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
+
+// Main
+async function main() {
+  console.log('========================================');
+  console.log('MCP Forwarder - Azure Edition');
+  console.log('========================================');
+  console.log('Event Log:', EVENT_LOG_FILE);
+  console.log('HTTP Endpoint:', MCP_INGEST_URL || 'Not configured');
+  console.log('Event Hub:', AZURE_EVENT_HUB_CONNECTION ? EVENT_HUB_NAME : 'Not configured');
+  console.log('Batch Size:', BATCH_SIZE);
+  console.log('Flush Interval:', FLUSH_INTERVAL_MS, 'ms');
+  console.log('========================================');
+
+  await initializeEventHub();
+  watchEventLog();
+
+  console.log('✅ MCP Forwarder started successfully!');
+}
+
+main().catch(console.error);
+FORWARDER_EOF
+
+# Create entrypoint script
+COPY <<'ENTRYPOINT_EOF' /app/entrypoint.sh
+#!/bin/bash
+set -e
+
+echo "Starting MCP Forwarder..."
+
+# Wait for event log file to exist
+EVENT_LOG_FILE="${EVENT_LOG_FILE:-/app/events/e2e-events.log}"
+EVENT_DIR=$(dirname "$EVENT_LOG_FILE")
+
+mkdir -p "$EVENT_DIR"
+
+# Create empty log file if it doesn't exist
+if [ ! -f "$EVENT_LOG_FILE" ]; then
+  touch "$EVENT_LOG_FILE"
+  echo "Created event log file: $EVENT_LOG_FILE"
+fi
+
+# Start forwarder
+node /app/mcp-forwarder-azure.js
+ENTRYPOINT_EOF
+
+RUN chmod +x /app/entrypoint.sh
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD pgrep -f node || exit 1
+
+# Labels
+LABEL maintainer="librechat-azure"
+LABEL description="MCP Event Forwarder with Azure Event Hub support"
+LABEL version="1.0"
+
+ENTRYPOINT ["/app/entrypoint.sh"]

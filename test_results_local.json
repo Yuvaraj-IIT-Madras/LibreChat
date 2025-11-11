@@ -1,0 +1,28 @@
+{
+  "environment": "local",
+  "timestamp": 1762528400.5951443,
+  "tests": [
+    {
+      "name": "Connectivity Tests",
+      "passed": false
+    },
+    {
+      "name": "Database Tests",
+      "passed": false
+    },
+    {
+      "name": "Service Health",
+      "passed": false
+    },
+    {
+      "name": "RAG Pipeline",
+      "passed": false
+    },
+    {
+      "name": "API Endpoints",
+      "passed": false
+    }
+  ],
+  "passed": 0,
+  "failed": 5
+}

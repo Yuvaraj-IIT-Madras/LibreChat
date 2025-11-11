@@ -1,0 +1,296 @@
+# Azure-Optimized Docker Compose Configuration
+# For local testing before Azure deployment
+# Mimics Azure services locally
+
+version: '3.8'
+
+services:
+  # LibreChat API (matches Azure Container Instance config)
+  librechat-api:
+    container_name: librechat-api-azure
+    image: ghcr.io/danny-avila/librechat-dev:latest
+    ports:
+      - "3080:3080"
+    depends_on:
+      - mongodb
+      - postgres-pgvector
+      - redis
+      - meilisearch
+      - rag-api
+    environment:
+      # Server Configuration
+      - HOST=0.0.0.0
+      - PORT=3080
+      
+      # Database Connections (local testing)
+      - MONGO_URI=mongodb://mongodb:27017/LibreChat
+      - REDIS_URI=redis://redis:6379
+      
+      # Meilisearch
+      - MEILI_HOST=http://meilisearch:7700
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
+      
+      # RAG API
+      - RAG_API_URL=http://rag-api:8000
+      
+      # Session & Security
+      - SESSION_EXPIRY=900000
+      - REFRESH_TOKEN_EXPIRY=604800000
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_SECRET}
+      - CREDS_KEY=${CREDS_KEY}
+      - CREDS_IV=${CREDS_IV}
+      
+      # Domain Configuration
+      - DOMAIN_CLIENT=http://localhost:3080
+      - DOMAIN_SERVER=http://localhost:3080
+      
+      # AI Provider API Keys
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - GOOGLE_KEY=${GOOGLE_KEY}
+      
+      # Azure-specific (for production)
+      - AZURE_OPENAI_API_KEY=${AZURE_OPENAI_API_KEY}
+      - AZURE_OPENAI_ENDPOINT=${AZURE_OPENAI_ENDPOINT}
+      
+      # Application Insights (when deployed to Azure)
+      - APPLICATIONINSIGHTS_CONNECTION_STRING=${APPLICATIONINSIGHTS_CONNECTION_STRING}
+    volumes:
+      - librechat-uploads:/app/uploads
+      - librechat-images:/app/client/public/images
+      - librechat-logs:/app/logs
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3080/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # MongoDB (Azure Cosmos DB alternative for local testing)
+  mongodb:
+    container_name: mongodb-azure
+    image: mongo:7-alpine
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD:-admin123}
+    volumes:
+      - mongodb-data:/data/db
+    restart: always
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # PostgreSQL with pgvector (Azure Database for PostgreSQL)
+  postgres-pgvector:
+    container_name: postgres-pgvector-azure
+    image: pgvector/pgvector:0.8.0-pg16
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=librechat
+      - POSTGRES_USER=librechat_admin
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres123}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U librechat_admin -d librechat"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Redis (Azure Cache for Redis)
+  redis:
+    container_name: redis-azure
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis123}
+    volumes:
+      - redis-data:/data
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Meilisearch (Self-hosted on Azure Container Instance)
+  meilisearch:
+    container_name: meilisearch-azure
+    image: getmeili/meilisearch:v1.12.3
+    ports:
+      - "7700:7700"
+    environment:
+      - MEILI_MASTER_KEY=${MEILI_MASTER_KEY}
+      - MEILI_NO_ANALYTICS=true
+      - MEILI_ENV=production
+    volumes:
+      - meilisearch-data:/meili_data
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # RAG API (LibreChat RAG with pgvector)
+  rag-api:
+    container_name: rag-api-azure
+    image: ghcr.io/danny-avila/librechat-rag-api-dev-lite:latest
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres-pgvector
+    environment:
+      - DB_HOST=postgres-pgvector
+      - RAG_PORT=8000
+      - POSTGRES_DB=librechat
+      - POSTGRES_USER=librechat_admin
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres123}
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Agentic Analytics - Tech Analyzer
+  agentic-tech-analyzer:
+    container_name: agentic-tech-analyzer
+    build:
+      context: .
+      dockerfile: azure/Dockerfile.agentic-analytics
+    depends_on:
+      - postgres-pgvector
+    environment:
+      - GOOGLE_KEY=${GOOGLE_KEY}
+      - DB_HOST=postgres-pgvector
+      - POSTGRES_DB=librechat
+      - POSTGRES_USER=librechat_admin
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres123}
+      - ANALYSIS_MODE=tech_stack
+    volumes:
+      - ./:/workspace
+      - agentic-output:/app/output
+    restart: on-failure
+    profiles:
+      - analytics
+
+  # Agentic Analytics - Dependency Mapper
+  agentic-dependency-mapper:
+    container_name: agentic-dependency-mapper
+    build:
+      context: .
+      dockerfile: azure/Dockerfile.agentic-analytics
+    depends_on:
+      - postgres-pgvector
+    environment:
+      - GOOGLE_KEY=${GOOGLE_KEY}
+      - DB_HOST=postgres-pgvector
+      - POSTGRES_DB=librechat
+      - POSTGRES_USER=librechat_admin
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres123}
+      - ANALYSIS_MODE=dependencies
+    volumes:
+      - ./:/workspace
+      - agentic-output:/app/output
+    restart: on-failure
+    profiles:
+      - analytics
+
+  # Agentic Analytics - Stack Generator
+  agentic-stack-generator:
+    container_name: agentic-stack-generator
+    build:
+      context: .
+      dockerfile: azure/Dockerfile.agentic-analytics
+    depends_on:
+      - postgres-pgvector
+    environment:
+      - GOOGLE_KEY=${GOOGLE_KEY}
+      - DB_HOST=postgres-pgvector
+      - POSTGRES_DB=librechat
+      - POSTGRES_USER=librechat_admin
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres123}
+      - ANALYSIS_MODE=stack_generation
+    volumes:
+      - ./:/workspace
+      - agentic-output:/app/output
+    restart: on-failure
+    profiles:
+      - analytics
+
+  # Playwright E2E Testing (with VNC for visual debugging)
+  playwright-e2e:
+    container_name: playwright-e2e-azure
+    build:
+      context: .
+      dockerfile: azure/Dockerfile.playwright-e2e
+    depends_on:
+      - librechat-api
+    ports:
+      - "5900:5900"  # VNC port
+    environment:
+      - E2E_URL=http://librechat-api:3080
+      - HEADLESS=false
+      - PWDEBUG=${PWDEBUG:-0}
+      - VNC_PASSWORD=librechat
+    volumes:
+      - playwright-screenshots:/app/e2e/test-screenshots
+      - playwright-events:/app/e2e/events
+    restart: on-failure
+    profiles:
+      - testing
+
+  # MCP Forwarder (Event streaming to Azure Event Hub)
+  mcp-forwarder:
+    container_name: mcp-forwarder-azure
+    build:
+      context: .
+      dockerfile: azure/Dockerfile.mcp-forwarder
+    depends_on:
+      - playwright-e2e
+    environment:
+      - MCP_INGEST_URL=${MCP_INGEST_URL}
+      - MCP_API_KEY=${MCP_API_KEY}
+      - AZURE_EVENT_HUB_CONNECTION=${AZURE_EVENT_HUB_CONNECTION}
+      - EVENT_HUB_NAME=${EVENT_HUB_NAME:-e2e-test-events}
+    volumes:
+      - playwright-events:/app/events:ro
+    restart: always
+    profiles:
+      - testing
+
+volumes:
+  librechat-uploads:
+    driver: local
+  librechat-images:
+    driver: local
+  librechat-logs:
+    driver: local
+  mongodb-data:
+    driver: local
+  postgres-data:
+    driver: local
+  redis-data:
+    driver: local
+  meilisearch-data:
+    driver: local
+  agentic-output:
+    driver: local
+  playwright-screenshots:
+    driver: local
+  playwright-events:
+    driver: local
+
+networks:
+  default:
+    name: librechat-azure-network
+    driver: bridge
